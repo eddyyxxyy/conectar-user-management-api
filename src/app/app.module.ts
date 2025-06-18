@@ -1,11 +1,9 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigType } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import swaggerConfig from "./config/swagger.config";
-import databaseConfig from "./config/database.config";
-import { envValidationOptions, envValidationSchema } from "./config/env.validation";
-import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
+import swaggerConfig from "../config/swagger.config";
+import databaseConfig from "../config/database.config";
+import { envValidationOptions, envValidationSchema } from "../config/env.validation";
 
 @Module({
   imports: [
@@ -29,7 +27,7 @@ import { AppService } from "./app.service";
       }),
     }),
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
