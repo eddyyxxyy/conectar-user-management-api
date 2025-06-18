@@ -1,22 +1,25 @@
 import { NestFactory } from "@nestjs/core";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
+import swaggerConfig from "./config/swagger.config";
+import { ConfigService, ConfigType } from "@nestjs/config";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const swagger = app.get<ConfigType<typeof swaggerConfig>>(swaggerConfig.KEY);
+
   const config = new DocumentBuilder()
-    .setTitle("Conéctar - User Management API")
-    .setDescription("API for managing user accounts in Conéctar")
-    .setVersion("0.0.1")
-    .addTag("users")
+    .setTitle(swagger.title)
+    .setDescription(swagger.description)
+    .setVersion(swagger.version)
     .build();
 
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup("api", app, SwaggerModule.createDocument(app, config));
 
-  SwaggerModule.setup("api", app, documentFactory());
+  const configService = app.get(ConfigService);
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(configService.get<number>("APP_PORT", 3000));
 }
 
 void bootstrap();
