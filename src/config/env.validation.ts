@@ -5,6 +5,11 @@ const envValidationSchema = Joi.object({
   SWAGGER_TITLE: Joi.string(),
   SWAGGER_DESCRIPTION: Joi.string(),
   SWAGGER_VERSION: Joi.string(),
+  DB_HOST: Joi.string().required(),
+  DB_PORT: Joi.number().default(5432),
+  DB_USER: Joi.string().required(),
+  DB_PASS: Joi.string().required(),
+  DB_NAME: Joi.string().required(),
 });
 
 const envValidationOptions = {
