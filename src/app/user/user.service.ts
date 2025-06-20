@@ -99,9 +99,8 @@ export class UserService {
       throw new NotFoundException("User not found.");
     }
 
-    delete user.password; // Remove sensitive data
+    delete user.password;
 
-    // Map User entity to UserResponseDto
     const userResponse: UserResponseDto = {
       id: user.id,
       email: user.email,
@@ -115,5 +114,44 @@ export class UserService {
     };
 
     return userResponse;
+  }
+
+  async findAllInactive(query?: FindAllUsersQueryDto) {
+    const page = query?.page ?? 1;
+    const limit = query?.limit ?? 10;
+    const role = query?.role;
+    const sortBy = query?.sortBy ?? "createdAt";
+    const order = query?.order ?? "asc";
+
+    console.log("Finding all inactive users with query:", query);
+
+    const qb = this.userRepository.createQueryBuilder("user");
+
+    if (role) {
+      qb.andWhere("user.role = :role", { role });
+    }
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    if (query?.neverLogged === "true") {
+      qb.andWhere("user.lastLogin IS NULL");
+    }
+    else if (query?.neverLogged === "false") {
+      qb.andWhere("user.lastLogin IS NOT NULL AND user.lastLogin < :date", { date: thirtyDaysAgo });
+    }
+    else {
+      qb.andWhere("(user.lastLogin IS NULL OR user.lastLogin < :date)", { date: thirtyDaysAgo });
+    }
+
+    qb.orderBy(`user.${sortBy}`, order.toUpperCase() as "ASC" | "DESC");
+    qb.skip((page - 1) * limit).take(limit);
+
+    const [users, count] = await qb.getManyAndCount();
+
+    return {
+      users,
+      count,
+    };
   }
 }

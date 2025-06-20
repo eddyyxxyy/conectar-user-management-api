@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
+import { IsBooleanString, IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 import { UserRole } from "../../../enums/user-role.enum";
 import { Type } from "class-transformer";
 
@@ -58,4 +58,14 @@ export class FindAllUsersQueryDto {
   @IsOptional()
   @IsString()
   order?: "asc" | "desc" = "asc";
+
+  @ApiPropertyOptional({
+    description: "Filter only users who never logged in (lastLogin is null)",
+    example: false,
+    default: false,
+    type: Boolean,
+  })
+  @IsOptional()
+  @IsBooleanString()
+  neverLogged?: string;
 }

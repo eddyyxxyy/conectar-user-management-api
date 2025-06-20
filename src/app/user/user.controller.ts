@@ -55,9 +55,24 @@ export class UserController {
     return this.userService.findAll(query);
   }
 
+  @Get("inactive")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get all inactive users (admin only)" })
+  @ApiUserFindAllQueryParameters()
+  @ApiUserFindAllResponses(
+    FindAllUsersResponseDto,
+    {
+      okMessage: "List of all inactive users (never logged or/and 30+ days " +
+        "since last login)",
+    },
+  )
+  findAllInactive(@Query() query: FindAllUsersQueryDto) {
+    return this.userService.findAllInactive(query);
+  }
+
   @Get(":id")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get user by ID" })
+  @ApiOperation({ summary: "Get user by ID (admin only)" })
   @ApiParam({ name: "id", type: String, description: "User ID" })
   @ApiUserFindOneResponse()
   findOne(@Param("id") id: string) {

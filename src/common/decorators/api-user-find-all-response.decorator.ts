@@ -7,10 +7,18 @@ import {
   ApiInternalServerErrorResponse,
 } from "@nestjs/swagger";
 
-const ApiUserFindAllResponses = (type: Type<unknown>) => {
+interface ApiUserFindAllResponsesOptions {
+  okMessage?: string;
+}
+
+const ApiUserFindAllResponses = (
+  type: Type<unknown>,
+  options: ApiUserFindAllResponsesOptions = {},
+) => {
+  const okMessage = options.okMessage ?? "List of all users.";
   return applyDecorators(
     ApiOkResponse({
-      description: "List of all users",
+      description: okMessage,
       type,
     }),
     ApiBadRequestResponse({
