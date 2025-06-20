@@ -1,7 +1,7 @@
 import { Injectable, ConflictException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { User } from "src/entities/user.entity";
+import { User } from "../../entities/user.entity";
 import { CreateUserDto } from "./dtos/create-user.dto";
 import { CreateUserResponseDto } from "./dtos/create-user-response.dto";
 import { CreateOrFindSocialUserDto } from "./dtos/create-or-find-social-user.dto";

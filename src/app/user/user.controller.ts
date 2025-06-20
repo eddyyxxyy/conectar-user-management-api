@@ -1,7 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from "@nestjs/common";
 import { ApiBody, ApiOperation } from "@nestjs/swagger";
 import { UserService } from "./user.service";
-import { ApiUserCreateResponses } from "src/common/decorators/api-user-create-response.decorator";
+import { ApiUserCreateResponses } from "../../common/decorators/api-user-create-response.decorator";
 import { CreateUserResponseDto } from "./dtos/create-user-response.dto";
 import { CreateUserDto } from "./dtos/create-user.dto";
 import { CreateOrFindSocialUserDto } from "./dtos/create-or-find-social-user.dto";

@@ -1,4 +1,4 @@
-import Joi from "joi";
+import * as Joi from "joi";
 
 const envValidationSchema = Joi.object({
   APP_PORT: Joi.number().min(1).max(65535).default(3000),

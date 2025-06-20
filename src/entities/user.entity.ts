@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { UserRole } from "../enums/user-role.enum";
-import bcrypt from "bcrypt";
+import * as bcrypt from "bcrypt";
 
 @Entity("users")
 class User {
@@ -23,7 +23,7 @@ class User {
   @Column({ select: false, nullable: true })
   password?: string;
 
-  @Column({ type: "enum", enum: UserRole, default: UserRole.USER })
+  @Column({ type: process.env.NODE_ENV === "test" ? "text" : "enum", enum: UserRole, default: UserRole.USER })
   role: UserRole;
 
   @Column({ nullable: true })
