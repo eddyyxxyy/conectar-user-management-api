@@ -5,6 +5,7 @@ import { CoreModule } from "../core/core.module";
 import swaggerConfig from "../config/swagger.config";
 import databaseConfig from "../config/database.config";
 import { envValidationOptions, envValidationSchema } from "../config/env.validation";
+import { UserModule } from "./user/user.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { envValidationOptions, envValidationSchema } from "../config/env.validat
     }),
     TypeOrmModule.forRootAsync(databaseConfig.asProvider()),
     CoreModule,
+    UserModule,
   ],
 })
 export class AppModule {}
