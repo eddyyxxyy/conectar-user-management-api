@@ -85,4 +85,37 @@ describe("UserController (e2e)", () => {
       }
     });
   });
+
+  describe("GET /users/:id (findOne)", () => {
+    let createdId: string;
+
+    interface FindOneResponse {
+      id: string;
+    }
+
+    beforeAll(async () => {
+      const res = await request(app.getHttpServer())
+        .post("/users")
+        .send({ name: "FindOne User", email: "findone@email.com", password: "StrongP@ssw0rd!" })
+        .expect(201);
+
+      const body = res.body as FindOneResponse;
+      createdId = body.id;
+    });
+
+    it("should return user by id", async () => {
+      const res = await request(app.getHttpServer())
+        .get(`/users/${createdId}`)
+        .expect(200);
+      expect(res.body).toHaveProperty("id", createdId);
+      expect(res.body).toHaveProperty("email", "findone@email.com");
+      expect(res.body).toHaveProperty("name", "FindOne User");
+    });
+
+    it("should return 404 if user not found", async () => {
+      await request(app.getHttpServer())
+        .get("/users/00000000-0000-0000-0000-000000000000")
+        .expect(404);
+    });
+  });
 });

@@ -124,4 +124,35 @@ describe("UserService", () => {
       expect(queryBuilderMock.take).toHaveBeenCalledWith(10);
     });
   });
+
+  describe("findOne", () => {
+    it("should return user correctly", async () => {
+      const user = {
+        id: "4",
+        email: "user@email.com",
+        name: "User Test",
+        role: UserRole.USER,
+        lastLogin: null,
+        provider: null,
+        providerId: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        password: "StrongP@ssw0rd!",
+      };
+      (userRepository.findOne as jest.Mock).mockResolvedValue(user);
+
+      const result = await service.findOne("4");
+      expect(result).toEqual({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        lastLogin: user.lastLogin,
+        provider: user.provider,
+        providerId: user.providerId,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      });
+    });
+  });
 });
