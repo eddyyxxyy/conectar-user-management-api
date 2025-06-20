@@ -1,21 +1,12 @@
 import { NestFactory } from "@nestjs/core";
-import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { ConfigService } from "@nestjs/config";
 import { AppModule } from "./app/app.module";
-import swaggerConfig from "./config/swagger.config";
-import { ConfigService, ConfigType } from "@nestjs/config";
+import { setupSwagger } from "./config/setup-swagger";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const swagger = app.get<ConfigType<typeof swaggerConfig>>(swaggerConfig.KEY);
-
-  const config = new DocumentBuilder()
-    .setTitle(swagger.title)
-    .setDescription(swagger.description)
-    .setVersion(swagger.version)
-    .build();
-
-  SwaggerModule.setup("api", app, SwaggerModule.createDocument(app, config));
+  setupSwagger(app);
 
   const configService = app.get(ConfigService);
 
