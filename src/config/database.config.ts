@@ -8,6 +8,8 @@ export default registerAs("database", (): DataSourceOptions => ({
   username: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
+  entities: [__dirname + "/../**/*.entity{.ts,.js}"],
+  uuidExtension: "pgcrypto",
   synchronize: process.env.NODE_ENV === "development",
   logging: process.env.NODE_ENV === "development" ? ["query", "error"] : false,
 }));
