@@ -5,6 +5,7 @@ import { User } from "../../entities/user.entity";
 import { CreateUserDto } from "./dtos/create-user.dto";
 import { CreateUserResponseDto } from "./dtos/create-user-response.dto";
 import { CreateOrFindSocialUserDto } from "./dtos/create-or-find-social-user.dto";
+import { FindAllUsersQueryDto } from "./dtos/find-all-users.query.dto";
 
 @Injectable()
 export class UserService {
@@ -62,5 +63,29 @@ export class UserService {
     await this.userRepository.save(newUser);
 
     return { id: newUser.id };
+  }
+
+  async findAll(query?: FindAllUsersQueryDto) {
+    const page = query?.page ?? 1;
+    const limit = query?.limit ?? 10;
+    const role = query?.role;
+    const sortBy = query?.sortBy ?? "createdAt";
+    const order = query?.order ?? "asc";
+
+    const qb = this.userRepository.createQueryBuilder("user");
+
+    if (role) {
+      qb.andWhere("user.role = :role", { role });
+    }
+
+    qb.orderBy(`user.${sortBy}`, order.toUpperCase() as "ASC" | "DESC");
+    qb.skip((page - 1) * limit).take(limit);
+
+    const [users, count] = await qb.getManyAndCount();
+
+    return {
+      users,
+      count,
+    };
   }
 }

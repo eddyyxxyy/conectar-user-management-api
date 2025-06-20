@@ -26,16 +26,19 @@ class User {
   @Column({ type: process.env.NODE_ENV === "test" ? "text" : "enum", enum: UserRole, default: UserRole.USER })
   role: UserRole;
 
+  @Column({ name: "last_login", type: process.env.NODE_ENV === "test" ? "text" : "timestamp", nullable: true })
+  lastLogin: Date | null;
+
   @Column({ nullable: true })
   provider?: string;
 
   @Column({ nullable: true })
   providerId?: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: "created_at" })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
 
   @BeforeInsert()
