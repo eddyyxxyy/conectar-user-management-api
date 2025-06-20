@@ -1,5 +1,5 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query } from "@nestjs/common";
-import { ApiBody, ApiOperation } from "@nestjs/swagger";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from "@nestjs/common";
+import { ApiBody, ApiOperation, ApiParam } from "@nestjs/swagger";
 import { UserService } from "./user.service";
 import {
   ApiUserCreateResponses,
@@ -13,10 +13,13 @@ import { FindAllUsersResponseDto } from "./dtos/find-all-response.dto";
 import { FindAllUsersQueryDto } from "./dtos/find-all-users.query.dto";
 import {
   ApiUserFindAllResponses,
-} from "../../common/decorators/api-user-findall-response.decorator";
+} from "../../common/decorators/api-user-find-all-response.decorator";
 import {
   ApiUserFindAllQueryParameters,
 } from "../../common/decorators/api-user-find-all-query-parameters.decorator";
+import {
+  ApiUserFindOneResponse,
+} from "../../common/decorators/api-user-find-one-response.decorator";
 
 @Controller("users")
 export class UserController {
@@ -50,5 +53,14 @@ export class UserController {
   @ApiUserFindAllResponses(FindAllUsersResponseDto)
   findAll(@Query() query: FindAllUsersQueryDto) {
     return this.userService.findAll(query);
+  }
+
+  @Get(":id")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get user by ID" })
+  @ApiParam({ name: "id", type: String, description: "User ID" })
+  @ApiUserFindOneResponse()
+  findOne(@Param("id") id: string) {
+    return this.userService.findOne(id);
   }
 }

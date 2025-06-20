@@ -29,17 +29,17 @@ export class UserResponseDto {
     nullable: true,
     type: String,
   })
-  lastLogin: string | null;
+  lastLogin: Date | null;
 
   @ApiProperty({ example: null, nullable: true })
-  provider: string | null;
+  provider: string | null | undefined;
 
   @ApiProperty({ example: null, nullable: true })
-  providerId: string | null;
+  providerId: string | null | undefined;
 
   @ApiProperty({ example: "2025-06-20T23:16:23.415Z" })
-  createdAt: string;
+  createdAt: Date;
 
   @ApiProperty({ example: "2025-06-20T23:16:23.415Z" })
-  updatedAt: string;
+  updatedAt: Date | null | undefined;
 }
