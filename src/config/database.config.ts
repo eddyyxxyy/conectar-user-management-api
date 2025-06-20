@@ -1,7 +1,7 @@
 import { registerAs } from "@nestjs/config";
-import { DataSourceOptions } from "typeorm";
+import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 
-export default registerAs("database", (): DataSourceOptions => ({
+export default registerAs("database", (): TypeOrmModuleOptions => ({
   type: "postgres",
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT ?? "5432", 10),
@@ -10,6 +10,8 @@ export default registerAs("database", (): DataSourceOptions => ({
   database: process.env.DB_NAME,
   entities: [__dirname + "/../**/*.entity{.ts,.js}"],
   uuidExtension: "pgcrypto",
+  retryAttempts: 10,
+  retryDelay: 3000,
   synchronize: process.env.NODE_ENV === "development",
   logging: process.env.NODE_ENV === "development" ? ["query", "error"] : false,
 }));

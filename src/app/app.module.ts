@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
-import { ConfigModule, ConfigType } from "@nestjs/config";
+import { ConfigModule } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { CoreModule } from "../core/core.module";
 import swaggerConfig from "../config/swagger.config";
 import databaseConfig from "../config/database.config";
 import { envValidationOptions, envValidationSchema } from "../config/env.validation";
@@ -16,18 +17,8 @@ import { envValidationOptions, envValidationSchema } from "../config/env.validat
       validationOptions: envValidationOptions,
       envFilePath: [`.env.${process.env.NODE_ENV}`, ".env"],
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [databaseConfig.KEY],
-      useFactory: (dbConfig: ConfigType<typeof databaseConfig>) => ({
-        ...dbConfig,
-        autoLoadEntities: true,
-        retryAttempts: 10,
-        retryDelay: 3000,
-      }),
-    }),
+    TypeOrmModule.forRootAsync(databaseConfig.asProvider()),
+    CoreModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule {}
