@@ -2,6 +2,9 @@ import * as request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { TestAppModule } from "./test-app.module";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { User } from "../src/entities/user.entity";
+import { Repository } from "typeorm";
 
 describe("UserController (e2e)", () => {
   let app: INestApplication;
@@ -116,6 +119,85 @@ describe("UserController (e2e)", () => {
       await request(app.getHttpServer())
         .get("/users/00000000-0000-0000-0000-000000000000")
         .expect(404);
+    });
+  });
+
+  describe("GET /users (findAllInactive)", () => {
+    interface FindAllResponse {
+      users: { lastLogin: Date }[]; count: number
+    }
+
+    beforeAll(async () => {
+      // Seed users for findAll
+      await request(app.getHttpServer())
+        .post("/users")
+        .send({
+          name: "A",
+          email: "a@a.com",
+          password: "StrongP@ssw0rd!",
+        });
+      await request(app.getHttpServer())
+        .post("/users")
+        .send({
+          name: "Inactive User",
+          email: "inactive@email.com",
+          password: "StrongP@ssw0rd!",
+        });
+
+      const userRepo = app.get<Repository<User>>(getRepositoryToken(User));
+      await userRepo.update(
+        { email: "inactive@email.com" },
+        { lastLogin: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000) }, // 31 days ago
+      );
+    });
+
+    it("should return all inactive users (never logged or inactive)", async () => {
+      const res = await request(app.getHttpServer())
+        .get("/users/inactive")
+        .expect(200);
+
+      const body = res.body as FindAllResponse;
+
+      expect(body).toHaveProperty("users");
+      expect(Array.isArray(body.users)).toBe(true);
+
+      expect(body.users).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ lastLogin: null }),
+          expect.objectContaining({ lastLogin: expect.any(String) as string }),
+        ]),
+      );
+    });
+
+    it("should return only never logged users", async () => {
+      const res = await request(app.getHttpServer())
+        .get("/users/inactive?neverLogged=true")
+        .expect(200);
+
+      const body = res.body as FindAllResponse;
+
+      expect(body).toHaveProperty("users");
+      expect(Array.isArray(body.users)).toBe(true);
+
+      expect(body.users.every((u) => u.lastLogin === null)).toBe(true);
+    });
+
+    it("should return only inactive users who have logged in before", async () => {
+      const res = await request(app.getHttpServer())
+        .get("/users/inactive?neverLogged=false")
+        .expect(200);
+
+      const body = res.body as FindAllResponse;
+
+      const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+
+      expect(body).toHaveProperty("users");
+      expect(Array.isArray(body.users)).toBe(true);
+
+      expect(body.users.every((u) => u.lastLogin !== null)).toBe(true);
+      expect(body.users.every(
+        (u) => new Date().getTime() - new Date(u.lastLogin).getTime() > THIRTY_DAYS,
+      )).toBe(true);
     });
   });
 });

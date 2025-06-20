@@ -155,4 +155,37 @@ describe("UserService", () => {
       });
     });
   });
+
+  describe("findAllInactive", () => {
+    it("should filter inactive users when neverLogged='true'", async () => {
+      (queryBuilderMock.getManyAndCount as jest.Mock).mockResolvedValue([[], 0]);
+      const query: FindAllUsersQueryDto = { neverLogged: "true" };
+      await service.findAllInactive(query);
+      expect(queryBuilderMock.andWhere).toHaveBeenCalledWith("user.lastLogin IS NULL");
+    });
+
+    it("should filter inactive users when neverLogged='false'", async () => {
+      (queryBuilderMock.getManyAndCount as jest.Mock).mockResolvedValue([[], 0]);
+      const query: FindAllUsersQueryDto = { neverLogged: "false" };
+      await service.findAllInactive(query);
+      expect(queryBuilderMock.andWhere).toHaveBeenCalledWith(
+        "user.lastLogin IS NOT NULL AND user.lastLogin < :date",
+        expect.objectContaining({ date: expect.any(Date) as Date }),
+      );
+    });
+
+    it(
+      "should return all inactive users (never logged and 30+ login date) " +
+        "when neverLogged not informed",
+      async () => {
+        (queryBuilderMock.getManyAndCount as jest.Mock).mockResolvedValue([[], 0]);
+        const query: FindAllUsersQueryDto = {};
+        await service.findAllInactive(query);
+        expect(queryBuilderMock.andWhere).toHaveBeenCalledWith(
+          "(user.lastLogin IS NULL OR user.lastLogin < :date)",
+          expect.objectContaining({ date: expect.any(Date) as Date }),
+        );
+      },
+    );
+  });
 });
