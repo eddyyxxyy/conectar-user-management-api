@@ -27,6 +27,7 @@
     "@nestjs/swagger": "^11.2.0",
     "@nestjs/typeorm": "^11.0.0",
     "cross-env": "^7.0.3",
+    "express-basic-auth": "^1.2.1",
     "joi": "^17.13.3",
     "pg": "^8.16.1",
     "reflect-metadata": "^0.2.2",
