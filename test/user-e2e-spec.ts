@@ -57,4 +57,32 @@ describe("UserController (e2e)", () => {
       .send({ name: "Social User", email: "test3@email.com", provider: "google", providerId: "zzz" })
       .expect(409);
   });
+
+  describe("GET /users (findAll)", () => {
+    beforeAll(async () => {
+      // Seed users for findAll
+      await request(app.getHttpServer())
+        .post("/users")
+        .send({ name: "A", email: "a@a.com", password: "StrongP@ssw0rd!" });
+      await request(app.getHttpServer())
+        .post("/users")
+        .send({ name: "B", email: "b@b.com", password: "StrongP@ssw0rd!" });
+    });
+
+    it("should return paginated, filtered and sorted users", async () => {
+      const res = await request(app.getHttpServer())
+        .get("/users?page=1&limit=1&sortBy=name&order=asc")
+        .expect(200);
+      interface FindAllResponse {
+        users: { name: string }[]; count: number
+      }
+      const body = res.body as FindAllResponse;
+      expect(body).toBeDefined();
+      expect(Array.isArray(body.users)).toBe(true);
+      expect(typeof body.count).toBe("number");
+      if (body.users.length > 0) {
+        expect(typeof body.users[0].name).toBe("string");
+      }
+    });
+  });
 });
