@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { UserService } from "./user.service";
@@ -30,6 +31,7 @@ describe("UserService", () => {
             findOne: jest.fn(),
             create: jest.fn(),
             save: jest.fn(),
+            remove: jest.fn(),
             createQueryBuilder: jest.fn(() => queryBuilderMock),
           },
         },
@@ -188,4 +190,35 @@ describe("UserService", () => {
       },
     );
   });
+
+  describe("remove", () => {
+    it("should remove the user successfully", async () => {
+      const user: User = {
+        id: "4",
+        email: "user@email.com",
+        name: "User Test",
+        role: UserRole.USER,
+        lastLogin: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        password: "StrongP@ssw0rd!",
+        hashPassword: jest.fn(),
+      };
+
+      jest
+        .spyOn(userRepository, "findOne")
+        .mockResolvedValue(user);
+
+      jest
+        .spyOn(userRepository, "remove")
+        .mockResolvedValue(user);
+
+      const result = await service.remove("4");
+
+      expect(userRepository.findOne).toHaveBeenCalledWith({ where: { id: "4" } });
+      expect(userRepository.remove).toHaveBeenCalledWith(user);
+      expect(result).toBeUndefined();
+    });
+  });
+
 });

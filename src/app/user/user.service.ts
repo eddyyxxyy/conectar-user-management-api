@@ -154,4 +154,16 @@ export class UserService {
       count,
     };
   }
+
+  async remove(id: string) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found.");
+    }
+
+    await this.userRepository.remove(user);
+  }
 }

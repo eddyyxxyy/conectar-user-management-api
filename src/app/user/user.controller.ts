@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query } from "@nestjs/common";
 import { ApiBody, ApiOperation, ApiParam } from "@nestjs/swagger";
 import { UserService } from "./user.service";
 import {
@@ -20,6 +20,7 @@ import {
 import {
   ApiUserFindOneResponse,
 } from "../../common/decorators/api-user-find-one-response.decorator";
+import { ApiUserDeleteResponse } from "../../common/decorators/api-user-delete-response.decorator";
 
 @Controller("users")
 export class UserController {
@@ -51,7 +52,7 @@ export class UserController {
   @ApiOperation({ summary: "Get all users (admin only)" })
   @ApiUserFindAllQueryParameters()
   @ApiUserFindAllResponses(FindAllUsersResponseDto)
-  findAll(@Query() query: FindAllUsersQueryDto) {
+  findAll(@Query() query: Omit<FindAllUsersQueryDto, "neverLogged">) {
     return this.userService.findAll(query);
   }
 
@@ -77,5 +78,14 @@ export class UserController {
   @ApiUserFindOneResponse()
   findOne(@Param("id") id: string) {
     return this.userService.findOne(id);
+  }
+
+  @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Delete user by ID (admin only)" })
+  @ApiParam({ name: "id", type: String, description: "User ID" })
+  @ApiUserDeleteResponse()
+  remove(@Param("id") id: string) {
+    return this.userService.remove(id);
   }
 }

@@ -200,4 +200,42 @@ describe("UserController (e2e)", () => {
       )).toBe(true);
     });
   });
+
+  describe("DELETE /users/:id (remove)", () => {
+    let createdId: string;
+
+    interface DeleteResponse {
+      id: string;
+    }
+
+    beforeAll(async () => {
+      const res = await request(app.getHttpServer())
+        .post("/users")
+        .send({
+          name: "User to Delete",
+          email: "delete@email.com",
+          password: "StrongP@ssw0rd!",
+        })
+        .expect(201);
+
+      const body = res.body as DeleteResponse;
+
+      expect(body).toHaveProperty("id");
+
+      createdId = body.id;
+    });
+
+    it("should delete the user successfully", async () => {
+      await request(app.getHttpServer())
+        .delete(`/users/${createdId}`)
+        .expect(204);
+    });
+
+    it("should return 404 when trying to delete non-existent user", async () => {
+      await request(app.getHttpServer())
+        .delete("/users/00000000-0000-0000-0000-000000000000")
+        .expect(404);
+    });
+  });
+
 });
