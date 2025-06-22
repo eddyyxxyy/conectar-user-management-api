@@ -6,6 +6,7 @@ import swaggerConfig from "../config/swagger.config";
 import databaseConfig from "../config/database.config";
 import { envValidationOptions, envValidationSchema } from "../config/env.validation";
 import { UserModule } from "./user/user.module";
+import { AuthModule } from "./auth/auth.module";
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { UserModule } from "./user/user.module";
     TypeOrmModule.forRootAsync(databaseConfig.asProvider()),
     CoreModule,
     UserModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
