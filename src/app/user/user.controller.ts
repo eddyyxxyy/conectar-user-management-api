@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query } from "@nestjs/common";
 import { ApiBody, ApiOperation, ApiParam } from "@nestjs/swagger";
 import { UserService } from "./user.service";
 import {
@@ -21,6 +21,8 @@ import {
   ApiUserFindOneResponse,
 } from "../../common/decorators/api-user-find-one-response.decorator";
 import { ApiUserDeleteResponse } from "../../common/decorators/api-user-delete-response.decorator";
+import { ApiUserUpdateResponse } from "../../common/decorators/api-user-update-response.decorator";
+import { UpdateUserDto } from "./dtos/update-user.dto";
 
 @Controller("users")
 export class UserController {
@@ -87,5 +89,15 @@ export class UserController {
   @ApiUserDeleteResponse()
   remove(@Param("id") id: string) {
     return this.userService.remove(id);
+  }
+
+  @Patch(":id")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update user by ID (admin only)" })
+  @ApiParam({ name: "id", type: String, description: "User ID" })
+  @ApiBody({ type: UpdateUserDto, required: false })
+  @ApiUserUpdateResponse()
+  update(@Param("id") id: string, @Body() dto: UpdateUserDto) {
+    return this.userService.update(id, dto);
   }
 }

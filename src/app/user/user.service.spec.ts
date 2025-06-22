@@ -4,9 +4,10 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { UserService } from "./user.service";
 import { User } from "../../entities/user.entity";
 import { Repository, SelectQueryBuilder } from "typeorm";
-import { ConflictException } from "@nestjs/common";
+import { ConflictException, NotFoundException } from "@nestjs/common";
 import { FindAllUsersQueryDto } from "./dtos/find-all-users.query.dto";
 import { UserRole } from "../../enums/user-role.enum";
+import { UpdateUserDto } from "./dtos/update-user.dto";
 
 describe("UserService", () => {
   let service: UserService;
@@ -221,4 +222,53 @@ describe("UserService", () => {
     });
   });
 
+  describe("update", () => {
+    const id = "user-id";
+    const oldUser = {
+      id,
+      name: "Old Name",
+      email: "old@email.com",
+      role: UserRole.USER,
+      password: "hashed",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    it("should update user name and role", async () => {
+      (userRepository.findOne as jest.Mock).mockResolvedValue(oldUser as User);
+      (userRepository.save as jest.Mock).mockResolvedValue({
+        ...oldUser,
+        name: "New Name",
+        role: UserRole.ADMIN,
+      });
+
+      const result = await service.update(id, { name: "New Name", role: UserRole.ADMIN });
+
+      expect(userRepository.findOne).toHaveBeenCalledWith({ where: { id } });
+      expect(userRepository.save).toHaveBeenCalledWith({
+        ...oldUser,
+        name: "New Name",
+        role: UserRole.ADMIN,
+      });
+      expect(result.name).toBe("New Name");
+      expect(result.role).toBe(UserRole.ADMIN);
+      expect(result.password).toBeUndefined();
+    });
+
+    it("should throw if user not found", async () => {
+      (userRepository.findOne as jest.Mock).mockResolvedValue(null);
+
+      const dto = { name: "New" } as UpdateUserDto;
+      await expect(service.update(id, dto)).rejects.toThrow(NotFoundException);
+    });
+
+    it("should throw conflict if updating to existing email", async () => {
+      (userRepository.findOne as jest.Mock).mockImplementation(({ where: { email } }) =>
+        email ? { id: "other-id" } : oldUser,
+      );
+
+      const dto = { email: "already@used.com" } as UpdateUserDto;
+      await expect(service.update(id, dto)).rejects.toThrow(ConflictException);
+    });
+  });
 });

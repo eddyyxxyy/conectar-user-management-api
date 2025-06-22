@@ -7,6 +7,7 @@ import { CreateUserResponseDto } from "./dtos/create-user-response.dto";
 import { CreateOrFindSocialUserDto } from "./dtos/create-or-find-social-user.dto";
 import { FindAllUsersQueryDto } from "./dtos/find-all-users.query.dto";
 import { UserResponseDto } from "./dtos/user-response.dto";
+import { UpdateUserDto } from "./dtos/update-user.dto";
 
 @Injectable()
 export class UserService {
@@ -165,5 +166,35 @@ export class UserService {
     }
 
     await this.userRepository.remove(user);
+  }
+
+  async update(id: string, dto: UpdateUserDto) {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException("User not found.");
+    }
+
+    if (dto.email && dto.email !== user.email) {
+      const emailExists = await this.userRepository.findOne({ where: { email: dto.email } });
+      if (emailExists) {
+        throw new ConflictException("Email already in use.");
+      }
+      user.email = dto.email;
+    }
+
+    if (dto.name) {
+      user.name = dto.name;
+    }
+
+    if (dto.role) {
+      user.role = dto.role;
+    }
+
+    const updatedUser = await this.userRepository.save(user);
+
+    delete updatedUser.password;
+
+    return updatedUser;
   }
 }

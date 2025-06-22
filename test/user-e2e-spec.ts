@@ -238,4 +238,83 @@ describe("UserController (e2e)", () => {
     });
   });
 
+  describe("PATCH /users/:id (update)", () => {
+    let createdId: string;
+
+    interface UpdateResponse {
+      id: string;
+    }
+
+    beforeAll(async () => {
+      const res = await request(app.getHttpServer())
+        .post("/users")
+        .send({
+          name: "User To Update",
+          email: "updatable@email.com",
+          password: "StrongP@ssw0rd!",
+        })
+        .expect(201);
+
+      const body = res.body as UpdateResponse;
+
+      createdId = body.id;
+    });
+
+    it("should update name and role", async () => {
+      const res = await request(app.getHttpServer())
+        .patch(`/users/${createdId}`)
+        .send({
+          name: "Updated Name",
+          role: "admin",
+        })
+        .expect(200);
+
+      expect(res.body).toHaveProperty("id", createdId);
+      expect(res.body).toHaveProperty("name", "Updated Name");
+      expect(res.body).toHaveProperty("role", "admin");
+    });
+
+    it("should return 404 for non-existent user", async () => {
+      await request(app.getHttpServer())
+        .patch("/users/00000000-0000-0000-0000-000000000000")
+        .send({ name: "Does not matter" })
+        .expect(404);
+    });
+
+    it("should return 409 if updating to an existing email", async () => {
+      await request(app.getHttpServer())
+        .post("/users")
+        .send({
+          name: "Conflict User",
+          email: "conflict@email.com",
+          password: "StrongP@ssw0rd!",
+        })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .patch(`/users/${createdId}`)
+        .send({
+          email: "conflict@email.com",
+        })
+        .expect(409);
+    });
+
+    it("should not allow invalid email", async () => {
+      await request(app.getHttpServer())
+        .patch(`/users/${createdId}`)
+        .send({
+          email: "invalid-email",
+        })
+        .expect(400);
+    });
+
+    it("should not allow invalid role", async () => {
+      await request(app.getHttpServer())
+        .patch(`/users/${createdId}`)
+        .send({
+          role: "SUPER_ADMIN",
+        })
+        .expect(400);
+    });
+  });
 });
