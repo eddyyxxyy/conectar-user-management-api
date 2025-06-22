@@ -20,9 +20,17 @@ import {
 import {
   ApiUserFindOneResponse,
 } from "../../common/decorators/api-user-find-one-response.decorator";
-import { ApiUserDeleteResponse } from "../../common/decorators/api-user-delete-response.decorator";
-import { ApiUserUpdateResponse } from "../../common/decorators/api-user-update-response.decorator";
+import {
+  ApiUserDeleteResponse,
+} from "../../common/decorators/api-user-delete-response.decorator";
+import {
+  ApiUserUpdateResponse,
+} from "../../common/decorators/api-user-update-response.decorator";
+import {
+  ApiResetPasswordResponse,
+} from "../../common/decorators/api-user-reset-password-response.decorator";
 import { UpdateUserDto } from "./dtos/update-user.dto";
+import { ResetPasswordDto } from "./dtos/reset-user-password.dto";
 
 @Controller("users")
 export class UserController {
@@ -99,5 +107,15 @@ export class UserController {
   @ApiUserUpdateResponse()
   update(@Param("id") id: string, @Body() dto: UpdateUserDto) {
     return this.userService.update(id, dto);
+  }
+
+  @Patch(":id/reset-password")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Reset a user's password (admin only)" })
+  @ApiParam({ name: "id", type: String, description: "User ID" })
+  @ApiBody({ type: ResetPasswordDto, required: false })
+  @ApiResetPasswordResponse()
+  resetPassword(@Param("id") id: string, @Body() dto: ResetPasswordDto) {
+    return this.userService.resetPassword(id, dto);
   }
 }

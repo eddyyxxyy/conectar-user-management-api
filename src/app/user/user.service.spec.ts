@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
+import * as bcrypt from "bcrypt";
 import { UserService } from "./user.service";
 import { User } from "../../entities/user.entity";
 import { Repository, SelectQueryBuilder } from "typeorm";
@@ -269,6 +270,71 @@ describe("UserService", () => {
 
       const dto = { email: "already@used.com" } as UpdateUserDto;
       await expect(service.update(id, dto)).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe("resetPassword", () => {
+    let service: UserService;
+    let userRepository: jest.Mocked<Repository<User>>;
+
+    beforeEach(async () => {
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          UserService,
+          {
+            provide: getRepositoryToken(User),
+            useValue: {
+              findOne: jest.fn(),
+              save: jest.fn(),
+            },
+          },
+        ],
+      }).compile();
+
+      service = module.get<UserService>(UserService);
+      userRepository = module.get(getRepositoryToken(User));
+    });
+
+    it("should reset password and hash it", async () => {
+      const user = { id: "123", password: "oldHash", name: "User Name", email: "user@email.com", role: UserRole.USER } as User;
+
+      userRepository.findOne.mockResolvedValue(user);
+
+      userRepository.save.mockImplementation((user: Partial<User>) =>
+        Promise.resolve({
+          id: user.id ?? "123",
+          name: user.name ?? "Default Name",
+          email: user.email ?? "default@email.com",
+          password: user.password,
+          role: user.role ?? UserRole.USER,
+          lastLogin: user.lastLogin ?? null,
+          provider: user.provider,
+          providerId: user.providerId,
+          createdAt: user.createdAt ?? new Date(),
+          updatedAt: user.updatedAt ?? new Date(),
+          hashPassword: () => {
+            return new Promise(() => {
+              return;
+            });
+          },
+        }),
+      );
+
+      jest.spyOn(bcrypt, "hash").mockResolvedValue("newHash" as never);
+
+      await service.resetPassword("123", { newPassword: "NewStrongPass123!" });
+
+      expect(userRepository.findOne).toHaveBeenCalledWith({ where: { id: "123" } });
+      expect(bcrypt.hash).toHaveBeenCalledWith("NewStrongPass123!", 10);
+      expect(userRepository.save).toHaveBeenCalledWith(expect.objectContaining({ password: "newHash" }));
+    });
+
+    it("should throw NotFoundException if user does not exist", async () => {
+      userRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.resetPassword("nonexistent", { newPassword: "AnyPass123!" }))
+        .rejects
+        .toThrow(NotFoundException);
     });
   });
 });

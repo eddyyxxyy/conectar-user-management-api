@@ -63,7 +63,6 @@ describe("UserController (e2e)", () => {
 
   describe("GET /users (findAll)", () => {
     beforeAll(async () => {
-      // Seed users for findAll
       await request(app.getHttpServer())
         .post("/users")
         .send({ name: "A", email: "a@a.com", password: "StrongP@ssw0rd!" });
@@ -128,7 +127,6 @@ describe("UserController (e2e)", () => {
     }
 
     beforeAll(async () => {
-      // Seed users for findAll
       await request(app.getHttpServer())
         .post("/users")
         .send({
@@ -314,6 +312,56 @@ describe("UserController (e2e)", () => {
         .send({
           role: "SUPER_ADMIN",
         })
+        .expect(400);
+    });
+  });
+
+  describe("PATCH /users/:id/reset-password (resetPassword)", () => {
+    let createdUserId: string;
+    interface ResetPasswordResponse {
+      id: string;
+    }
+
+    beforeAll(async () => {
+      const res = await request(app.getHttpServer())
+        .post("/users")
+        .send({
+          name: "Reset Password User",
+          email: "resetpassuser@email.com",
+          password: "StrongP@ssw0rd!",
+        })
+        .expect(201);
+
+      const body = res.body as ResetPasswordResponse;
+
+      createdUserId = body.id;
+    });
+
+    it("should reset password successfully with strong password", async () => {
+      await request(app.getHttpServer())
+        .patch(`/users/${createdUserId}/reset-password`)
+        .send({ newPassword: "NewStrongP@ss123!" })
+        .expect(204);
+    });
+
+    it("should return 400 if newPassword is weak or invalid", async () => {
+      await request(app.getHttpServer())
+        .patch(`/users/${createdUserId}/reset-password`)
+        .send({ newPassword: "weakpass" })
+        .expect(400);
+    });
+
+    it("should return 404 if user does not exist", async () => {
+      await request(app.getHttpServer())
+        .patch("/users/00000000-0000-0000-0000-000000000000/reset-password")
+        .send({ newPassword: "NewStrongP@ss123!" })
+        .expect(404);
+    });
+
+    it("should return 400 if newPassword is missing", async () => {
+      await request(app.getHttpServer())
+        .patch(`/users/${createdUserId}/reset-password`)
+        .send({})
         .expect(400);
     });
   });

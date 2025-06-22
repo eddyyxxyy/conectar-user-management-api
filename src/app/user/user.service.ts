@@ -1,6 +1,7 @@
 import { Injectable, ConflictException, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import * as bcrypt from "bcrypt";
 import { User } from "../../entities/user.entity";
 import { CreateUserDto } from "./dtos/create-user.dto";
 import { CreateUserResponseDto } from "./dtos/create-user-response.dto";
@@ -8,6 +9,7 @@ import { CreateOrFindSocialUserDto } from "./dtos/create-or-find-social-user.dto
 import { FindAllUsersQueryDto } from "./dtos/find-all-users.query.dto";
 import { UserResponseDto } from "./dtos/user-response.dto";
 import { UpdateUserDto } from "./dtos/update-user.dto";
+import { ResetPasswordDto } from "./dtos/reset-user-password.dto";
 
 @Injectable()
 export class UserService {
@@ -124,8 +126,6 @@ export class UserService {
     const sortBy = query?.sortBy ?? "createdAt";
     const order = query?.order ?? "asc";
 
-    console.log("Finding all inactive users with query:", query);
-
     const qb = this.userRepository.createQueryBuilder("user");
 
     if (role) {
@@ -196,5 +196,16 @@ export class UserService {
     delete updatedUser.password;
 
     return updatedUser;
+  }
+
+  async resetPassword(userId: string, dto: ResetPasswordDto) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException("User not found.");
+    }
+
+    user.password = await bcrypt.hash(dto.newPassword, 10);
+    await this.userRepository.save(user);
   }
 }
