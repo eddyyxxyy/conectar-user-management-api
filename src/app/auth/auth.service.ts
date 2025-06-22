@@ -13,6 +13,7 @@ import { ConfigType } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "../../entities/user.entity";
 import { Repository } from "typeorm";
+import type { CurrentUser } from "./types/current-user";
 
 @Injectable()
 export class AuthService {
@@ -109,5 +110,13 @@ export class AuthService {
         refreshToken: undefined,
       },
     );
+  }
+
+  async validateJwtUser(id: string) {
+    const user = await this.userService.findOne(id);
+
+    const currentUser: CurrentUser = { id, role: user.role };
+
+    return currentUser;
   }
 }

@@ -5,9 +5,11 @@ import { TestAppModule } from "./test-app.module";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { User } from "../src/entities/user.entity";
 import { Repository } from "typeorm";
+import { UserRole } from "../src/enums/user-role.enum";
 
 describe("UserController (e2e)", () => {
   let app: INestApplication;
+  let adminToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -17,6 +19,20 @@ describe("UserController (e2e)", () => {
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
     await app.init();
+
+    await request(app.getHttpServer())
+      .post("/users")
+      .send({ name: "Admin", email: "admin@email.com", password: "AdminPass123!" });
+
+    const userRepo = app.get<Repository<User>>(getRepositoryToken(User));
+    await userRepo.update({ email: "admin@email.com" }, { role: UserRole.ADMIN });
+
+    const loginRes = await request(app.getHttpServer())
+      .post("/auth/login")
+      .send({ email: "admin@email.com", password: "AdminPass123!" })
+      .expect(200);
+
+    adminToken = (loginRes.body as { accessToken: string }).accessToken;
   });
 
   afterAll(async () => {
@@ -74,6 +90,7 @@ describe("UserController (e2e)", () => {
     it("should return paginated, filtered and sorted users", async () => {
       const res = await request(app.getHttpServer())
         .get("/users?page=1&limit=1&sortBy=name&order=asc")
+        .set("Authorization", `Bearer ${adminToken}`)
         .expect(200);
       interface FindAllResponse {
         users: { name: string }[]; count: number
@@ -108,6 +125,7 @@ describe("UserController (e2e)", () => {
     it("should return user by id", async () => {
       const res = await request(app.getHttpServer())
         .get(`/users/${createdId}`)
+        .set("Authorization", `Bearer ${adminToken}`)
         .expect(200);
       expect(res.body).toHaveProperty("id", createdId);
       expect(res.body).toHaveProperty("email", "findone@email.com");
@@ -117,6 +135,7 @@ describe("UserController (e2e)", () => {
     it("should return 404 if user not found", async () => {
       await request(app.getHttpServer())
         .get("/users/00000000-0000-0000-0000-000000000000")
+        .set("Authorization", `Bearer ${adminToken}`)
         .expect(404);
     });
   });
@@ -152,6 +171,7 @@ describe("UserController (e2e)", () => {
     it("should return all inactive users (never logged or inactive)", async () => {
       const res = await request(app.getHttpServer())
         .get("/users/inactive")
+        .set("Authorization", `Bearer ${adminToken}`)
         .expect(200);
 
       const body = res.body as FindAllResponse;
@@ -170,6 +190,7 @@ describe("UserController (e2e)", () => {
     it("should return only never logged users", async () => {
       const res = await request(app.getHttpServer())
         .get("/users/inactive?neverLogged=true")
+        .set("Authorization", `Bearer ${adminToken}`)
         .expect(200);
 
       const body = res.body as FindAllResponse;
@@ -183,6 +204,7 @@ describe("UserController (e2e)", () => {
     it("should return only inactive users who have logged in before", async () => {
       const res = await request(app.getHttpServer())
         .get("/users/inactive?neverLogged=false")
+        .set("Authorization", `Bearer ${adminToken}`)
         .expect(200);
 
       const body = res.body as FindAllResponse;
@@ -226,12 +248,14 @@ describe("UserController (e2e)", () => {
     it("should delete the user successfully", async () => {
       await request(app.getHttpServer())
         .delete(`/users/${createdId}`)
+        .set("Authorization", `Bearer ${adminToken}`)
         .expect(204);
     });
 
     it("should return 404 when trying to delete non-existent user", async () => {
       await request(app.getHttpServer())
         .delete("/users/00000000-0000-0000-0000-000000000000")
+        .set("Authorization", `Bearer ${adminToken}`)
         .expect(404);
     });
   });
@@ -261,6 +285,7 @@ describe("UserController (e2e)", () => {
     it("should update name and role", async () => {
       const res = await request(app.getHttpServer())
         .patch(`/users/${createdId}`)
+        .set("Authorization", `Bearer ${adminToken}`)
         .send({
           name: "Updated Name",
           role: "admin",
@@ -275,6 +300,7 @@ describe("UserController (e2e)", () => {
     it("should return 404 for non-existent user", async () => {
       await request(app.getHttpServer())
         .patch("/users/00000000-0000-0000-0000-000000000000")
+        .set("Authorization", `Bearer ${adminToken}`)
         .send({ name: "Does not matter" })
         .expect(404);
     });
@@ -291,6 +317,7 @@ describe("UserController (e2e)", () => {
 
       await request(app.getHttpServer())
         .patch(`/users/${createdId}`)
+        .set("Authorization", `Bearer ${adminToken}`)
         .send({
           email: "conflict@email.com",
         })
@@ -300,6 +327,7 @@ describe("UserController (e2e)", () => {
     it("should not allow invalid email", async () => {
       await request(app.getHttpServer())
         .patch(`/users/${createdId}`)
+        .set("Authorization", `Bearer ${adminToken}`)
         .send({
           email: "invalid-email",
         })
@@ -309,6 +337,7 @@ describe("UserController (e2e)", () => {
     it("should not allow invalid role", async () => {
       await request(app.getHttpServer())
         .patch(`/users/${createdId}`)
+        .set("Authorization", `Bearer ${adminToken}`)
         .send({
           role: "SUPER_ADMIN",
         })
@@ -340,6 +369,7 @@ describe("UserController (e2e)", () => {
     it("should reset password successfully with strong password", async () => {
       await request(app.getHttpServer())
         .patch(`/users/${createdUserId}/reset-password`)
+        .set("Authorization", `Bearer ${adminToken}`)
         .send({ newPassword: "NewStrongP@ss123!" })
         .expect(204);
     });
@@ -347,6 +377,7 @@ describe("UserController (e2e)", () => {
     it("should return 400 if newPassword is weak or invalid", async () => {
       await request(app.getHttpServer())
         .patch(`/users/${createdUserId}/reset-password`)
+        .set("Authorization", `Bearer ${adminToken}`)
         .send({ newPassword: "weakpass" })
         .expect(400);
     });
@@ -354,6 +385,7 @@ describe("UserController (e2e)", () => {
     it("should return 404 if user does not exist", async () => {
       await request(app.getHttpServer())
         .patch("/users/00000000-0000-0000-0000-000000000000/reset-password")
+        .set("Authorization", `Bearer ${adminToken}`)
         .send({ newPassword: "NewStrongP@ss123!" })
         .expect(404);
     });
@@ -361,6 +393,7 @@ describe("UserController (e2e)", () => {
     it("should return 400 if newPassword is missing", async () => {
       await request(app.getHttpServer())
         .patch(`/users/${createdUserId}/reset-password`)
+        .set("Authorization", `Bearer ${adminToken}`)
         .send({})
         .expect(400);
     });
@@ -368,7 +401,6 @@ describe("UserController (e2e)", () => {
 
   describe("GET /profile (protected)", () => {
     let jwtToken: string;
-    // let refreshToken: string;
     let createdUserId: string;
 
     interface CreateUserResponse {
@@ -401,7 +433,6 @@ describe("UserController (e2e)", () => {
         .expect(200);
 
       jwtToken = (resLogin.body as LoginResponse).accessToken;
-      // refreshToken = (resLogin.body as LoginResponse).refreshToken;
     });
 
     it("should return profile data with valid JWT token", async () => {
@@ -448,6 +479,7 @@ describe("UserController (e2e)", () => {
     it("should reset password successfully", async () => {
       await request(app.getHttpServer())
         .patch(`/users/${createdUserId}/reset-password`)
+        .set("Authorization", `Bearer ${adminToken}`)
         .send({ newPassword: "NewPass123!" })
         .expect(204);
     });
@@ -455,6 +487,7 @@ describe("UserController (e2e)", () => {
     it("should return 404 if user does not exist", async () => {
       await request(app.getHttpServer())
         .patch("/users/00000000-0000-0000-0000-000000000000/reset-password")
+        .set("Authorization", `Bearer ${adminToken}`)
         .send({ newPassword: "NewPass123!" })
         .expect(404);
     });

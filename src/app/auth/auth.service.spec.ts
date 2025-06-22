@@ -9,7 +9,6 @@ import refreshJwtConfig from "../../config/refresh-jwt.config";
 describe("AuthService", () => {
   let authService: AuthService;
 
-  // Mocks tipados
   let userService: {
     findWithPasswordByEmail: jest.Mock;
   };
@@ -22,7 +21,6 @@ describe("AuthService", () => {
     update: jest.Mock;
   };
 
-  // Você pode usar qualquer valor estático aqui
   let refreshTokenConfig: ConfigType<typeof refreshJwtConfig>;
 
   beforeEach(() => {

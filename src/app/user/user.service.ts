@@ -268,7 +268,7 @@ export class UserService {
   async changePassword(id: string, dto: ChangePasswordDto) {
     const user = await this.userRepository.findOne({
       where: { id },
-      select: { id: true, password: true }, // certifique-se disso
+      select: { id: true, password: true },
     });
 
     if (!user) {
@@ -277,7 +277,7 @@ export class UserService {
 
     if (!user.password) {
       user.password = dto.newPassword;
-      await this.userRepository.save(user); // <-- save aqui!
+      await this.userRepository.save(user);
       return;
     }
 

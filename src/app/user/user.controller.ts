@@ -41,6 +41,9 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth/jwt-auth.guard";
 import type { RequestWithUser } from "../auth/types/request-with-user";
 import { UpdateUserProfileDto } from "./dtos/update-user-profile.dto";
 import { ChangePasswordDto } from "./dtos/change-user-profile-password.dto";
+import { AuthRoles } from "../../common/decorators/auth-roles.decorator";
+import { UserRole } from "../../enums/user-role.enum";
+import { RolesGuard } from "../auth/guards/roles/roles.guard";
 
 @Controller("users")
 export class UserController {
@@ -68,6 +71,10 @@ export class UserController {
   }
 
   @Get()
+  @AuthRoles(UserRole.ADMIN)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth("JWT Authentication")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get all users (admin only)" })
   @ApiUserFindAllQueryParameters()
@@ -77,6 +84,10 @@ export class UserController {
   }
 
   @Get("inactive")
+  @AuthRoles(UserRole.ADMIN)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth("JWT Authentication")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get all inactive users (admin only)" })
   @ApiUserFindAllQueryParameters()
@@ -91,8 +102,11 @@ export class UserController {
     return this.userService.findAllInactive(query);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get("profile")
+  @AuthRoles(UserRole.ADMIN, UserRole.USER)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth("JWT Authentication")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get the current logged user" })
   @ApiBearerAuth("JWT Authentication")
@@ -101,8 +115,11 @@ export class UserController {
     return this.userService.findOne(req.user.id);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch("profile")
+  @AuthRoles(UserRole.ADMIN, UserRole.USER)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth("JWT Authentication")
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth("JWT Authentication")
   @ApiOperation({ summary: "Update current user's profile (name, email)" })
@@ -114,8 +131,11 @@ export class UserController {
     return this.userService.update(req.user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch("change-password")
+  @AuthRoles(UserRole.ADMIN, UserRole.USER)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth("JWT Authentication")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth("JWT Authentication")
   @ApiOperation({ summary: "Change current user's password" })
@@ -128,6 +148,10 @@ export class UserController {
   }
 
   @Get(":id")
+  @AuthRoles(UserRole.ADMIN)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth("JWT Authentication")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get user by ID (admin only)" })
   @ApiParam({ name: "id", type: String, description: "User ID" })
@@ -137,6 +161,10 @@ export class UserController {
   }
 
   @Delete(":id")
+  @AuthRoles(UserRole.ADMIN)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth("JWT Authentication")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete user by ID (admin only)" })
   @ApiParam({ name: "id", type: String, description: "User ID" })
@@ -146,6 +174,10 @@ export class UserController {
   }
 
   @Patch(":id")
+  @AuthRoles(UserRole.ADMIN)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth("JWT Authentication")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Update user by ID (admin only)" })
   @ApiParam({ name: "id", type: String, description: "User ID" })
@@ -156,6 +188,10 @@ export class UserController {
   }
 
   @Patch(":id/reset-password")
+  @AuthRoles(UserRole.ADMIN)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth("JWT Authentication")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Reset a user's password (admin only)" })
   @ApiParam({ name: "id", type: String, description: "User ID" })

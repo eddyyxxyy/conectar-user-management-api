@@ -422,7 +422,7 @@ describe("UserService", () => {
         { password: "$2b$10$hashedNewPass" },
       );
 
-      jest.restoreAllMocks(); // limpa todos os mocks do bcrypt
+      jest.restoreAllMocks();
     });
   });
 });
