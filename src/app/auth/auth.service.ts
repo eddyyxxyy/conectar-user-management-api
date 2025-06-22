@@ -5,6 +5,7 @@ import {
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { compare } from "bcrypt";
+import * as argon2 from "argon2";
 import { UserService } from "../user/user.service";
 import { AuthJwtPayload } from "./types/auth-jwt-payload";
 import refreshJwtConfig from "../../config/refresh-jwt.config";
@@ -41,21 +42,72 @@ export class AuthService {
   }
 
   async login(id: string) {
-    const payload: AuthJwtPayload = { sub: id };
-    const accessToken = await this.jwtService.signAsync(payload);
-    const refreshToken = await this.jwtService.signAsync(
-      payload, this.refreshTokenConfig,
+    const { accessToken, refreshToken } = await this.generateTokens(id);
+
+    const hashedRefreshToken = await argon2.hash(refreshToken);
+
+    await this.userRepository.update(
+      { id },
+      {
+        lastLogin: () => "CURRENT_TIMESTAMP",
+        refreshToken: hashedRefreshToken,
+      },
     );
 
-    await this.userRepository.update({ id }, { lastLogin: () => "CURRENT_TIMESTAMP" });
+    return { id, accessToken, refreshToken };
+  }
+
+  async refreshToken(id: string) {
+    const { accessToken, refreshToken } = await this.generateTokens(id);
+
+    const hashedRefreshToken = await argon2.hash(refreshToken);
+
+    await this.userRepository.update(
+      { id },
+      {
+        refreshToken: hashedRefreshToken,
+      },
+    );
+
+    return { id, accessToken, refreshToken };
+  }
+
+  async validateRefreshToken(id: string, refreshToken?: string) {
+    const user = await this.userService.findOne(id);
+
+    if (!user.refreshToken || !refreshToken) {
+      throw new UnauthorizedException("Invalid refresh token");
+    }
+
+    const refreshTokenMatches = await argon2.verify(
+      user.refreshToken, refreshToken,
+    );
+
+    if (!refreshTokenMatches) {
+      throw new UnauthorizedException("Invalid refresh token");
+    }
+
+    return { id };
+  }
+
+  async generateTokens(id: string) {
+    const payload: AuthJwtPayload = { sub: id };
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload),
+      this.jwtService.signAsync(
+        payload, this.refreshTokenConfig,
+      ),
+    ]);
 
     return { accessToken, refreshToken };
   }
 
-  async refreshToken(id: string) {
-    const payload: AuthJwtPayload = { sub: id };
-    const accessToken = await this.jwtService.signAsync(payload);
-
-    return { id, accessToken };
+  async logout(id: string) {
+    await this.userRepository.update(
+      { id },
+      {
+        refreshToken: undefined,
+      },
+    );
   }
 }

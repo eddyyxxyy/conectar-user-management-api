@@ -11,10 +11,17 @@ export class RefreshTokenResponseDto {
   id: string;
 
   @IsJWT()
-  @IsString()
   @ApiProperty({
     type: String,
-    description: "The refresh token for the user.",
+    description: "The new access token for the user.",
+    required: true,
+  })
+  accessToken: string;
+
+  @IsJWT()
+  @ApiProperty({
+    type: String,
+    description: "The new refresh token for the user.",
     required: true,
   })
   refreshToken: string;

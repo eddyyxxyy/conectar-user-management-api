@@ -16,6 +16,12 @@ export class UserResponseDto {
   email: string;
 
   @ApiProperty({
+    description: "The token used to refresh user auth.",
+    required: false,
+  })
+  refreshToken?: string;
+
+  @ApiProperty({
     enum: UserRole,
     description: "The role of the user.",
     example: UserRole.USER,

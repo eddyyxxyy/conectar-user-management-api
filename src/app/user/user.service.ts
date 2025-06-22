@@ -109,6 +109,7 @@ export class UserService {
       email: user.email,
       name: user.name,
       role: user.role,
+      refreshToken: user.refreshToken,
       lastLogin: user.lastLogin,
       provider: user.provider,
       providerId: user.providerId,

@@ -8,9 +8,11 @@ import { User } from "../src/entities/user.entity";
 interface LoginResponse {
   accessToken: string;
   refreshToken: string;
+  id: string;
 }
 
 interface RefreshResponse {
+  refreshToken: string;
   accessToken: string;
   id: string;
 }
@@ -50,6 +52,7 @@ describe("AuthController (e2e)", () => {
 
     const body = res.body as LoginResponse;
 
+    expect(typeof body.id).toBe("string");
     expect(typeof body.accessToken).toBe("string");
     expect(typeof body.refreshToken).toBe("string");
   });
@@ -62,7 +65,7 @@ describe("AuthController (e2e)", () => {
       .expect(401);
   });
 
-  it("POST /auth/refresh - should return new accessToken", async () => {
+  it("POST /auth/refresh - should return new accessToken and refreshToken", async () => {
     const loginRes = await request(app.getHttpServer())
       .post("/auth/login")
       .send({ email: "test@email.com", password: "StrongP@ssw0rd!" });
@@ -72,11 +75,12 @@ describe("AuthController (e2e)", () => {
     const refreshRes = await request(app.getHttpServer())
       .post("/auth/refresh")
       .set("Authorization", `Bearer ${loginBody.refreshToken}`)
-      .expect(201);
+      .expect(200);
 
-    const refreshBody = refreshRes.body as RefreshResponse;
+    const refreshBody = refreshRes.body as RefreshResponse & { refreshToken: string };
 
     expect(typeof refreshBody.accessToken).toBe("string");
+    expect(typeof refreshBody.refreshToken).toBe("string");
     expect(typeof refreshBody.id).toBe("string");
   });
 

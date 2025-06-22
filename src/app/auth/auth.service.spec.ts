@@ -78,6 +78,7 @@ describe("AuthService", () => {
     const result = await authService.login("id1");
 
     expect(result).toEqual({
+      id: "id1",
       accessToken: "accessToken",
       refreshToken: "refreshToken",
     });
@@ -91,6 +92,7 @@ describe("AuthService", () => {
     expect(result).toEqual({
       id: "id1",
       accessToken: "newAccessToken",
+      refreshToken: "newAccessToken",
     });
 
     expect(jwtService.signAsync).toHaveBeenCalledWith({ sub: "id1" });

@@ -2,6 +2,14 @@ import { IsJWT, IsString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class LoginResponseDto {
+  @IsString()
+  @ApiProperty({
+    type: String,
+    description: "The user id.",
+    required: true,
+  })
+  id: string;
+
   @IsJWT()
   @IsString()
   @ApiProperty({

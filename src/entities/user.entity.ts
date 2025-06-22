@@ -23,6 +23,9 @@ class User {
   @Column({ select: false, nullable: true })
   password?: string;
 
+  @Column({ name: "refresh_token", nullable: true })
+  refreshToken?: string;
+
   @Column({ type: process.env.NODE_ENV === "test" ? "text" : "enum", enum: UserRole, default: UserRole.USER })
   role: UserRole;
 
