@@ -1,8 +1,11 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from "@nestjs/common";
+import { Body, Controller, HttpCode, HttpStatus, Post, Request, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dtos/login.dto";
-import { ApiBody, ApiOperation } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiBody, ApiOperation } from "@nestjs/swagger";
 import { ApiAuthLoginResponses } from "../../common/decorators/api-auth-login-response.decorator";
+import { RefreshJwtAuthGuard } from "./guards/refresh-jwt-auth/refresh-jwt-auth.guard";
+import type { RequestWithUser } from "./types/request-with-user";
+import { ApiAuthRefreshTokenResponses } from "../../common/decorators/api-auth-refresh-token-response.decorator";
 
 @Controller("auth")
 export class AuthController {
@@ -19,5 +22,16 @@ export class AuthController {
     const { id } = await this.authService.validateUser(email, password);
 
     return await this.authService.login(id);
+  }
+
+  @Post("refresh")
+  @UseGuards(RefreshJwtAuthGuard)
+  @ApiBearerAuth("JWT Refresh Token")
+  @ApiOperation({
+    summary: "Refreshes user access token",
+  })
+  @ApiAuthRefreshTokenResponses()
+  async refreshToken(@Request() req: RequestWithUser) {
+    return this.authService.refreshToken(req.user.id);
   }
 }

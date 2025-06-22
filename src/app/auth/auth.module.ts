@@ -9,6 +9,7 @@ import { UserService } from "../user/user.service";
 import jwtConfig from "../../config/jwt.config";
 import refreshJwtConfig from "../../config/refresh-jwt.config";
 import { JwtStrategy } from "./strategies/jwt.strategy";
+import { RefreshJwtStrategy } from "./strategies/refresh-jwt.strategy";
 
 @Module({
   imports: [
@@ -18,6 +19,6 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
     ConfigModule.forFeature(refreshJwtConfig),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserService, JwtStrategy],
+  providers: [AuthService, UserService, JwtStrategy, RefreshJwtStrategy],
 })
 export class AuthModule {}

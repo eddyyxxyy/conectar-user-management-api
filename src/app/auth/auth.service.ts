@@ -51,4 +51,11 @@ export class AuthService {
 
     return { accessToken, refreshToken };
   }
+
+  async refreshToken(id: string) {
+    const payload: AuthJwtPayload = { sub: id };
+    const accessToken = await this.jwtService.signAsync(payload);
+
+    return { id, accessToken };
+  }
 }

@@ -82,4 +82,17 @@ describe("AuthService", () => {
       refreshToken: "refreshToken",
     });
   });
+
+  it("should generate new access token on refreshToken", async () => {
+    jwtService.signAsync.mockResolvedValue("newAccessToken");
+
+    const result = await authService.refreshToken("id1");
+
+    expect(result).toEqual({
+      id: "id1",
+      accessToken: "newAccessToken",
+    });
+
+    expect(jwtService.signAsync).toHaveBeenCalledWith({ sub: "id1" });
+  });
 });

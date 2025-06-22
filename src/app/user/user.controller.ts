@@ -87,7 +87,7 @@ export class UserController {
   @Get("profile")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get the current logged user" })
-  @ApiBearerAuth("jwt")
+  @ApiBearerAuth("JWT Authentication")
   @ApiUserFindOneResponse()
   getProfile(@Request() req: RequestWithUser) {
     return this.userService.findOne(req.user.id);
