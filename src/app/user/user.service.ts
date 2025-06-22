@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException } from "@nestjs/common";
+import { Injectable, ConflictException, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import * as bcrypt from "bcrypt";
@@ -10,6 +10,8 @@ import { FindAllUsersQueryDto } from "./dtos/find-all-users.query.dto";
 import { UserResponseDto } from "./dtos/user-response.dto";
 import { UpdateUserDto } from "./dtos/update-user.dto";
 import { ResetPasswordDto } from "./dtos/reset-user-password.dto";
+import { UpdateUserProfileDto } from "./dtos/update-user-profile.dto";
+import { ChangePasswordDto } from "./dtos/change-user-profile-password.dto";
 
 @Injectable()
 export class UserService {
@@ -232,5 +234,63 @@ export class UserService {
 
     user.password = await bcrypt.hash(dto.newPassword, 10);
     await this.userRepository.save(user);
+  }
+
+  async updateProfile(id: string, dto: UpdateUserProfileDto) {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException("User not found.");
+    }
+
+    if (dto.email && dto.email !== user.email) {
+      const emailExists = await this.userRepository.findOne({
+        where: { email: dto.email },
+      });
+
+      if (emailExists) {
+        throw new ConflictException("Email already in use.");
+      }
+
+      user.email = dto.email;
+    }
+
+    if (dto.name) {
+      user.name = dto.name;
+    }
+
+    const updatedUser = await this.userRepository.save(user);
+
+    delete updatedUser.password;
+    return updatedUser;
+  }
+
+  async changePassword(id: string, dto: ChangePasswordDto) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      select: { id: true, password: true }, // certifique-se disso
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found.");
+    }
+
+    if (!user.password) {
+      user.password = dto.newPassword;
+      await this.userRepository.save(user); // <-- save aqui!
+      return;
+    }
+
+    if (!dto.currentPassword) {
+      throw new UnauthorizedException("Current password must be provided.");
+    }
+
+    const isPasswordMatch = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!isPasswordMatch) {
+      throw new UnauthorizedException("Current password is incorrect.");
+    }
+
+    const hashed = await bcrypt.hash(dto.newPassword, 10);
+    await this.userRepository.update({ id }, { password: hashed });
   }
 }

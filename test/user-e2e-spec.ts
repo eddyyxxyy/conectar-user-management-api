@@ -428,4 +428,82 @@ describe("UserController (e2e)", () => {
         .expect(401);
     });
   });
+
+  describe("PATCH /users/reset-password", () => {
+    interface CreateUserResponse {
+      id: string;
+    }
+
+    let createdUserId: string;
+
+    beforeAll(async () => {
+      const userRes = await request(app.getHttpServer())
+        .post("/users")
+        .send({ name: "Reset User", email: "resetuser@email.com", password: "OldPass123!" })
+        .expect(201);
+
+      createdUserId = (userRes.body as CreateUserResponse).id;
+    });
+
+    it("should reset password successfully", async () => {
+      await request(app.getHttpServer())
+        .patch(`/users/${createdUserId}/reset-password`)
+        .send({ newPassword: "NewPass123!" })
+        .expect(204);
+    });
+
+    it("should return 404 if user does not exist", async () => {
+      await request(app.getHttpServer())
+        .patch("/users/00000000-0000-0000-0000-000000000000/reset-password")
+        .send({ newPassword: "NewPass123!" })
+        .expect(404);
+    });
+  });
+
+  describe("PATCH /users/change-password", () => {
+    interface LoginResponse {
+      accessToken: string;
+      refreshToken: string;
+    }
+
+    let jwtToken: string;
+
+    beforeAll(async () => {
+      await request(app.getHttpServer())
+        .post("/users")
+        .send({ name: "ChangePass User", email: "changepass@email.com", password: "OldPass123!" })
+        .expect(201);
+
+      const loginRes = await request(app.getHttpServer())
+        .post("/auth/login")
+        .send({ email: "changepass@email.com", password: "OldPass123!" })
+        .expect(200);
+
+      jwtToken = (loginRes.body as LoginResponse).accessToken;
+    });
+
+    it("should change password successfully", async () => {
+      await request(app.getHttpServer())
+        .patch("/users/change-password")
+        .set("Authorization", `Bearer ${jwtToken}`)
+        .send({ currentPassword: "OldPass123!", newPassword: "NewPass123!" })
+        .expect(204);
+    });
+
+    it("should return 401 if current password is incorrect", async () => {
+      await request(app.getHttpServer())
+        .patch("/users/change-password")
+        .set("Authorization", `Bearer ${jwtToken}`)
+        .send({ currentPassword: "WrongPass", newPassword: "NewPass123!" })
+        .expect(401);
+    });
+
+    it("should return 401 if current password is missing but user has a password", async () => {
+      await request(app.getHttpServer())
+        .patch("/users/change-password")
+        .set("Authorization", `Bearer ${jwtToken}`)
+        .send({ newPassword: "NewPass123!" })
+        .expect(401);
+    });
+  });
 });

@@ -42,6 +42,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth("JWT Authentication")
+  @ApiOperation({
+    summary: "Logs out user and revokes refresh token",
+  })
   @ApiAuthLogoutResponses()
   async logout(@Request() req: RequestWithUser) {
     await this.authService.logout(req.user.id);

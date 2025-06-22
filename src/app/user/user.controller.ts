@@ -29,10 +29,18 @@ import {
 import {
   ApiResetPasswordResponse,
 } from "../../common/decorators/api-user-reset-password-response.decorator";
+import {
+  ApiUserUpdateProfileResponse,
+} from "../../common/decorators/api-user-update-profile-response.decorator";
+import {
+  ApiUserChangePasswordResponse,
+} from "../../common/decorators/api-user-change-password-response.decorator";
 import { UpdateUserDto } from "./dtos/update-user.dto";
 import { ResetPasswordDto } from "./dtos/reset-user-password.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth/jwt-auth.guard";
 import type { RequestWithUser } from "../auth/types/request-with-user";
+import { UpdateUserProfileDto } from "./dtos/update-user-profile.dto";
+import { ChangePasswordDto } from "./dtos/change-user-profile-password.dto";
 
 @Controller("users")
 export class UserController {
@@ -91,6 +99,32 @@ export class UserController {
   @ApiUserFindOneResponse()
   getProfile(@Request() req: RequestWithUser) {
     return this.userService.findOne(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch("profile")
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth("JWT Authentication")
+  @ApiOperation({ summary: "Update current user's profile (name, email)" })
+  @ApiUserUpdateProfileResponse()
+  async updateProfile(
+    @Request() req: RequestWithUser,
+    @Body() dto: UpdateUserProfileDto,
+  ) {
+    return this.userService.update(req.user.id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch("change-password")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth("JWT Authentication")
+  @ApiOperation({ summary: "Change current user's password" })
+  @ApiUserChangePasswordResponse()
+  async changePassword(
+    @Request() req: RequestWithUser,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    await this.userService.changePassword(req.user.id, dto);
   }
 
   @Get(":id")
