@@ -7,6 +7,7 @@ import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { UserService } from "../user/user.service";
 import jwtConfig from "../../config/jwt.config";
+import refreshJwtConfig from "../../config/refresh-jwt.config";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 
 @Module({
@@ -14,6 +15,7 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync(jwtConfig.asProvider()),
     ConfigModule.forFeature(jwtConfig),
+    ConfigModule.forFeature(refreshJwtConfig),
   ],
   controllers: [AuthController],
   providers: [AuthService, UserService, JwtStrategy],

@@ -368,6 +368,7 @@ describe("UserController (e2e)", () => {
 
   describe("GET /profile (protected)", () => {
     let jwtToken: string;
+    // let refreshToken: string;
     let createdUserId: string;
 
     interface CreateUserResponse {
@@ -376,6 +377,7 @@ describe("UserController (e2e)", () => {
 
     interface LoginResponse {
       accessToken: string;
+      refreshToken: string;
     }
 
     beforeAll(async () => {
@@ -399,6 +401,7 @@ describe("UserController (e2e)", () => {
         .expect(200);
 
       jwtToken = (resLogin.body as LoginResponse).accessToken;
+      // refreshToken = (resLogin.body as LoginResponse).refreshToken;
     });
 
     it("should return profile data with valid JWT token", async () => {

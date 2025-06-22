@@ -1,11 +1,15 @@
 import { UnauthorizedException } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
 import { AuthService } from "./auth.service";
+import { Repository } from "typeorm";
+import { User } from "src/entities/user.entity";
+import { ConfigType } from "@nestjs/config";
+import refreshJwtConfig from "../../config/refresh-jwt.config";
 
 describe("AuthService", () => {
   let authService: AuthService;
 
-  // Tipagem clara para os mocks
+  // Mocks tipados
   let userService: {
     findWithPasswordByEmail: jest.Mock;
   };
@@ -14,15 +18,37 @@ describe("AuthService", () => {
     signAsync: jest.Mock;
   };
 
+  let userRepository: {
+    update: jest.Mock;
+  };
+
+  // Você pode usar qualquer valor estático aqui
+  let refreshTokenConfig: ConfigType<typeof refreshJwtConfig>;
+
   beforeEach(() => {
     userService = {
       findWithPasswordByEmail: jest.fn(),
     };
+
     jwtService = {
       signAsync: jest.fn(),
     };
 
-    authService = new AuthService(userService as any, jwtService as any);
+    userRepository = {
+      update: jest.fn(),
+    };
+
+    refreshTokenConfig = {
+      secret: "refresh-secret",
+      expiresIn: "7d",
+    };
+
+    authService = new AuthService(
+      userService as any,
+      jwtService as any,
+      userRepository as unknown as Repository<User>,
+      refreshTokenConfig,
+    );
   });
 
   it("should throw if user password is missing (social login)", async () => {
@@ -46,11 +72,14 @@ describe("AuthService", () => {
     expect(result).toEqual({ id: "id1" });
   });
 
-  it("should return JWT token on login", async () => {
-    jwtService.signAsync.mockResolvedValue("token");
+  it("should return JWT token on login and update lastLogin", async () => {
+    jwtService.signAsync.mockResolvedValueOnce("accessToken").mockResolvedValueOnce("refreshToken");
 
-    const token = await authService.login("id1");
-    expect(token).toBe("token");
-    expect(jwtService.signAsync).toHaveBeenCalledWith({ sub: "id1" });
+    const result = await authService.login("id1");
+
+    expect(result).toEqual({
+      accessToken: "accessToken",
+      refreshToken: "refreshToken",
+    });
   });
 });

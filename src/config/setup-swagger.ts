@@ -29,7 +29,13 @@ const setupSwagger = (app: INestApplication ): void => {
     .setTitle(swagger.title)
     .setDescription(swagger.description)
     .setVersion(swagger.version)
-    .addBearerAuth()
+    .addBearerAuth({
+      type: "http",
+      scheme: "bearer",
+      bearerFormat: "JWT",
+      in: "header",
+      description: "Insert your access token here after login.",
+    }, "JWT Authentication")
     .build();
 
   SwaggerModule.setup("api", app, SwaggerModule.createDocument(app, config));
