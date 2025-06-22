@@ -119,6 +119,30 @@ export class UserService {
     return userResponse;
   }
 
+  async findWithPasswordByEmail(email: string) {
+    const user = await this.userRepository.findOne({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        password: true,
+        role: true,
+        lastLogin: true,
+        provider: true,
+        providerId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found.");
+    }
+
+    return user;
+  }
+
   async findAllInactive(query?: FindAllUsersQueryDto) {
     const page = query?.page ?? 1;
     const limit = query?.limit ?? 10;
