@@ -365,4 +365,64 @@ describe("UserController (e2e)", () => {
         .expect(400);
     });
   });
+
+  describe("GET /profile (protected)", () => {
+    let jwtToken: string;
+    let createdUserId: string;
+
+    interface CreateUserResponse {
+      id: string;
+    }
+
+    interface LoginResponse {
+      accessToken: string;
+    }
+
+    beforeAll(async () => {
+      const resCreate = await request(app.getHttpServer())
+        .post("/users")
+        .send({
+          name: "Profile User",
+          email: "profileuser@email.com",
+          password: "StrongP@ssw0rd!",
+        })
+        .expect(201);
+
+      createdUserId = (resCreate.body as CreateUserResponse).id;
+
+      const resLogin = await request(app.getHttpServer())
+        .post("/auth/login")
+        .send({
+          email: "profileuser@email.com",
+          password: "StrongP@ssw0rd!",
+        })
+        .expect(200);
+
+      jwtToken = (resLogin.body as LoginResponse).accessToken;
+    });
+
+    it("should return profile data with valid JWT token", async () => {
+      const res = await request(app.getHttpServer())
+        .get("/users/profile")
+        .set("Authorization", `Bearer ${jwtToken}`)
+        .expect(200);
+
+      expect(res.body).toHaveProperty("id", createdUserId);
+      expect(res.body).toHaveProperty("email", "profileuser@email.com");
+      expect(res.body).toHaveProperty("name", "Profile User");
+    });
+
+    it("should return 401 Unauthorized without token", async () => {
+      await request(app.getHttpServer())
+        .get("/users/profile")
+        .expect(401);
+    });
+
+    it("should return 401 Unauthorized with invalid token", async () => {
+      await request(app.getHttpServer())
+        .get("/users/profile")
+        .set("Authorization", "Bearer invalidtoken")
+        .expect(401);
+    });
+  });
 });

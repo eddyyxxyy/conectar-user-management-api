@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query } from "@nestjs/common";
-import { ApiBody, ApiOperation, ApiParam } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam } from "@nestjs/swagger";
 import { UserService } from "./user.service";
 import {
   ApiUserCreateResponses,
@@ -31,6 +31,8 @@ import {
 } from "../../common/decorators/api-user-reset-password-response.decorator";
 import { UpdateUserDto } from "./dtos/update-user.dto";
 import { ResetPasswordDto } from "./dtos/reset-user-password.dto";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth/jwt-auth.guard";
+import type { RequestWithUser } from "../auth/types/request-with-user";
 
 @Controller("users")
 export class UserController {
@@ -79,6 +81,16 @@ export class UserController {
   )
   findAllInactive(@Query() query: FindAllUsersQueryDto) {
     return this.userService.findAllInactive(query);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("profile")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get the current logged user" })
+  @ApiBearerAuth("jwt")
+  @ApiUserFindOneResponse()
+  getProfile(@Request() req: RequestWithUser) {
+    return this.userService.findOne(req.user.id);
   }
 
   @Get(":id")
