@@ -4,6 +4,9 @@
   "description": "Simple scalable, reliable, documented and clean user management system built with NestJS",
   "author": "Edson Pimenta",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "license": "MIT",
   "scripts": {
     "build": "npx cross-env NODE_ENV=production nest build",

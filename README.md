@@ -25,13 +25,16 @@ O sistema simula uma ferramenta interna para cadastro, autenticação e administ
 - **updatedAt**: Data de atualização
 
 ## Rotas Principais
-- `POST /auth/register` – Cadastro de usuário
+- `POST /user` – Cadastro de usuário
 - `POST /auth/login` – Login e geração de token JWT
+- `GET /auth/google/login` – Login do Google via OAuth2
 - `GET /users` – Listagem de usuários (apenas admin)
-- `GET /users/:id` – Detalhes do usuário
-- `PUT /users/:id` – Atualização de dados
+- `GET /users/:id` – Detalhes do usuário (apenas admin)
+- `GET /users/profile` – Detalhes do usuário logado
+- `PATCH /users/profile` – Atualização de dados do usuário logado
+- `PATCH /users/:id` – Atualização de dados (apenas admin)
 - `DELETE /users/:id` – Exclusão (apenas admin)
-- `GET /users/inactive` – Listar usuários inativos
+- `GET /users/inactive` – Listar usuários inativos (apenas admin)
 
 ## Tecnologias Utilizadas
 - **Framework:** NestJS (com TypeScript)
@@ -45,23 +48,37 @@ O sistema simula uma ferramenta interna para cadastro, autenticação e administ
 
 1. Clone o repositório:
    ```bash
-   git clone <url-do-repo>
+   git clone https://github.com/eddyyxxyy/conectar-user-management-api.git
    cd user-management
    ```
 2. Instale as dependências:
    ```bash
    npm install
    ```
-3. Configure o banco de dados em `.env` (exemplo disponível no projeto).
-4. Rode as migrations (se houver):
+3. Configure o banco de dados e outras variáveis de ambiente em `.env`
+(exemplo disponível no projeto).
+  > Lembre-se de configurar o .env.test também, a melhor opção é separar os .env
+  por ambiente (development, production, test, etc.)!
+4. Inicialize seu banco de dados PostgreSQl.
+    - Você pode usar o docker compose para gerar um banco local:
+      ```bash
+      docker compose -f .\docker\docker-compose.yaml up -d
+      ```
+5. Rode as migrations para criar a tabela de usuários e seu enum após o banco estar pronto para receber conexões:
    ```bash
-   npm run typeorm migration:run
+   npm run typeorm -- migration:run -- -d .\src\data-source.ts
    ```
-5. Inicie o servidor:
+6. Rode as seeds se desejar popular os usuários em vez de os cadastrar a mão:
+   ```bash
+   npm run seed
+   ```
+7. Inicie o servidor:
    ```bash
    npm run start:dev
    ```
-6. Acesse a documentação da API em `/api` (Swagger).
+8. Acesse a documentação da API em `/api` (Swagger) no host configurado pr você no .env.
+
+> Lembre-se que no docker-compose há variáveis de ambiente que definem o usuário, senha e banco de dados que você usará no .env e, por consequência na aplicação (os dados devem ser o mesmo para uma conexão com sucesso).
 
 ## Testes
 - Testes unitários: `npm run test`
