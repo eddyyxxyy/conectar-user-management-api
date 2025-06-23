@@ -90,4 +90,10 @@ describe("AuthController (e2e)", () => {
       .set("Authorization", "Bearer invalid.token.here")
       .expect(401);
   });
+
+  it("GET /auth/google/login should redirect to Google", async () => {
+    await request(app.getHttpServer())
+      .get("/auth/google/login")
+      .expect(302);
+  });
 });

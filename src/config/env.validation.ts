@@ -15,6 +15,10 @@ const envValidationSchema = Joi.object({
   JWT_EXPIRES_IN: Joi.string().required(),
   REFRESH_JWT_SECRET: Joi.string().required(),
   REFRESH_JWT_EXPIRES_IN: Joi.string().required(),
+  GOOGLE_CLIENT_ID: Joi.string().required(),
+  GOOGLE_CLIENT_SECRET: Joi.string().required(),
+  GOOGLE_CALLBACK_URL: Joi.string().required(),
+  FRONTEND_URL: Joi.string().required(),
 });
 
 const envValidationOptions = {

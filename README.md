@@ -78,15 +78,15 @@ O sistema simula uma ferramenta interna para cadastro, autenticação e administ
 - Integração opcional com login social (Google/Microsoft) via OAuth 2.0.
 
 ## Checklist do Desafio
-- [ ] Cadastro de usuários
-- [ ] Autenticação com JWT
-- [ ] Autenticação via OAuth (Google/Microsoft, opcional mas preferível)
-- [ ] CRUD completo de usuários
-- [ ] Permissões por papel (admin/user)
-- [ ] Filtros e ordenação na listagem de usuários
-- [ ] Listagem de usuários inativos (sem login nos últimos 30 dias)
-- [ ] Testes unitários
-- [ ] Testes de integração (e2e)
-- [ ] Documentação da API com Swagger
+- [x] Cadastro de usuários
+- [x] Autenticação com JWT
+- [x] Autenticação via OAuth (Google/Microsoft, opcional mas preferível)
+- [x] CRUD completo de usuários
+- [x] Permissões por papel (admin/user)
+- [x] Filtros e ordenação na listagem de usuários
+- [x] Listagem de usuários inativos (sem login nos últimos 30 dias)
+- [x] Testes unitários
+- [x] Testes de integração (e2e)
+- [x] Documentação da API com Swagger
 - [ ] Explicação das decisões de arquitetura
 - [ ] Deploy e demonstração (opcional, mas preferível)
